@@ -2,7 +2,7 @@ import random
 import math
 import copy
 
-
+###USE [[0] * 4 for i in range(4)] FOR THE PROBLEM OF CHANGING MULTIPLE LISTS BLUEARRRRRR
 def drawgrid(board, game_size):
 	print("-" * ((4 * game_size) + 1))
 	for i in range(game_size):
