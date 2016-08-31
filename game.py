@@ -1,4 +1,5 @@
 import random
+import math
 
 
 def drawgrid(board, game_size):
@@ -19,7 +20,7 @@ def drawgrid(board, game_size):
 def check_state(board, game_size):
 	game_on=True
 	computer_win=0
-	d/iagonalup=0
+	diagonalup=0
 	diagonaldown=0
 	for m in range(game_size):
 		horizontal=(sum(board[m]))
@@ -52,8 +53,28 @@ def check_state(board, game_size):
 		game_on=False
 	return game_on, computer_win
 	
-def get_computer_move(board):
-	*
+def build_tree(board, game_size):
+	board_as_dict = {0:[], 1:[], 2:[]}
+	for y in range(game_size):
+		for x in range(game_size):
+			cell_value=board[y][x]
+			board_as_dict[cell_value].append((x,y))
+			
+	states_dict = {}
+	links_dict = {}
+	stack = []
+	node_counter = 0
+	stack.append(node_counter)
+	states_dict.append(node_counter:board)
+	while len(stack) > 0:
+		x=stack.pop()
+		
+
+def get_computer_move(board, game_size):
+	#the players piece will always be two and the computer is 0
+	computer_value = 0
+	player_value = 2
+	states_dict, links_dict = build_tree(board)
 			
 def main():	
 	game_on=True
@@ -86,8 +107,10 @@ def main():
 		
 	if computer_win==1:
 		print("I win!")
+		get_computer_move(board, game_on, game_size)
 	else:
 		print("You win!")
+		get_computer_move(board, game_on, game_size)
 
 main()			
 
