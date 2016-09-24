@@ -2,6 +2,9 @@ import random
 import math
 import copy
 
+COMPUTER_VARIABLE = 0
+PLAYER_VARIABLE = 2
+AMBIGUOUS = 1
 
 def drawgrid(board, game_size):
 	print("-" * ((4 * game_size) + 1))
@@ -57,9 +60,57 @@ def check_state(board, game_size):
 		game_on = False
 	return game_on, computer_win
 	
+def check_game_win_tree(new_state, game_size):
+	computer_win = 2
+	computer_has_won = -3
+	computer_has_lost = 3
+	rows_to_check=[0]*game_size
+	columns_to_check=[0]*game_size
+	diagonal_down_to_check_computer = 0
+	diagonal_up_to_check_computer = 0
+	diagonal_down_to_check_player = 0
+	diagonal_up_to_check_player = 0
+	for x,y in new_state[0]: #subtracts one from each row/column value per times a player or computer has moved there
+		rows_to_check[y] -= 1
+		columns_to_check[x] -= 1
+	for x,y in new_state[2]:
+		rows_to_check[y] += 1
+		columns_to_check[x] += 1
+	if computer_has_lost in rows_to_check:
+		computer_win = PLAYER_VARIABLE+1
+	if computer_has_won in rows_to_check:
+		computer_win = COMPUTER_VARIABLE+1
+	if computer_has_lost in columns_to_check:
+		computer_win = PLAYER_VARIABLE+1
+	if computer_has_won in columns_to_check:
+		computer_win = COMPUTER_VARIABLE+1
+		
+	for x,y in new_state[0]:
+		if x == y:
+			diagonal_down_to_check_computer+=1
+		if x == 2-y:
+			diagonal_up_to_check_computer+=1
+	for x,y in new_state[2]:
+		if x == y:
+			diagonal_down_to_check_player+=1
+		if x == 2-y:
+			diagonal_up_to_check_player+=1
+			#######################################################
+	if diagonal_down_to_check_computer == 3:
+		computer_win = COMPUTER_VARIABLE+1
+	if diagonal_up_to_check_computer == 3:
+		computer_win = COMPUTER_VARIABLE+1
+	if diagonal_down_to_check_player == 3:
+		computer_win = PLAYER_VARIABLE+1
+	if diagonal_up_to_check_player == 3:
+		computer_win = PLAYER_VARIABLE+1
+		
+	return computer_win
+	print (computer_win)
+
 def build_tree(board, game_size):
-	computer_value = 0 # TODO
-	player_value = 2
+	computer_value = COMPUTER_VARIABLE # TODO
+	player_value = PLAYER_VARIABLE
 	
 
 	board_as_dict = {0:[], 1:[], 2:[]}
@@ -85,7 +136,9 @@ def build_tree(board, game_size):
 		state_index = stack.pop()
 		curr_player = player_turn_to_move[state_index]
 		curr_state = states_dict[state_index]
-		#check_state ##########################################################################
+		computer_win_in_tree = check_game_win_tree(curr_state, game_size)
+		if computer_win_in_tree == 3 or computer_win_in_tree == 1:
+			continue
 		for free_coordinate in curr_state[1]:
 			new_state = copy.deepcopy(curr_state)
 			#move free_coordinate from [1] to [curr_player]
@@ -121,10 +174,39 @@ def get_computer_move(board, game_size):
 	print(links_dict)
 	print(states_dict)
 	print(player_turn_to_move)
+	get_values(links_dict, states_dict, player_turn_to_move)
 	
-	# 
+def get_values(links_dict, states_dict, player_turn_to_move):
+	current_node = 0
+	minimax_tree = {}
+	post_order(links_dict, states_dict, player_turn_to_move, minimax_tree, current_node, game_size)
 	
-	
+def postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, current_node, game_size):
+	for child in links_dict[current_node]:
+		postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, child, game_size)
+	#append value of current node to the minimax tree
+	if len(links_dict[current_node]) == 0:
+		game_winning_state = check_game_win_tree(states_dict[current_node],game_size)
+		minimax_tree[current_node] = 0
+		if game_winning_state = PLAYER_VARIABLE+1:
+			minimax_tree[current_node]+=1
+		elif game_winning_state = COMPUTER_VARIABLE+1:
+			minimax_tree[current_node]-=1
+	else:
+		if player_turn_to_move[current_node] == COMPUTER_VARIABLE:
+			minimum_constituents = links_dict[current_node]
+			group_of_children=[]
+			for individual_child in minimum_constituents:
+				group_of_children.append(minimax_tree[individual_child])
+			minimax_tree[current_node] = min(group_of_children)
+		else:
+			maximum_constituents = links_dict[current_node]
+			group_of_children = []
+			for individual_child in maximum_constituents:
+				group_of_children.append(minimax_tree[individual_child])
+			minimax_tree[current_node] = max(group_of_children)
+####values represent the worth to the player where positive is player win and negative is computer win
+
 			
 def main():	
 	game_on = True
@@ -155,13 +237,13 @@ def main():
 		drawgrid(board, game_size)
 		game_on, computer_win = check_state(board, game_size)
 		
-	if computer_win == 1:
+	if computer_win == COMPUTER_VARIABLE+1: #1
 		print("I win!")
 		get_computer_move(board, game_on, game_size)
-	elif computer_win == 2:
+	elif computer_win == AMBIGUOUS+1: #2
 		print("It's a draw!")
 		get_computer_move(board, game_on, game_size)
-	else:
+	elif computer_win ==PLAYER_VARIABLE+1: #3
 		print("You win!")
 		get_computer_move(board, game_on, game_size)
 
