@@ -61,18 +61,6 @@ def build_tree(board, game_size):
 	computer_value = 0 # TODO
 	player_value = 2
 	
-	#dict as board- turns dict to board format to parse whether its won or not
-	dict_as_board = [[[]*game_size]*game_size]
-	for x,y in curr_state[0]:
-		dict_as_board[y][x] = 0
-	for x,y in curr_state[1]:
-		dict_as_board[y][x] = 1
-	for x,y in curr_state[2]:
-		dict_as_board[y][x] = 2
-		
-	check_state(dict_as_board, )
-	
-	
 
 	board_as_dict = {0:[], 1:[], 2:[]}
 	links_dict = {}# shows the possible moves that can be made after this board.
@@ -97,6 +85,7 @@ def build_tree(board, game_size):
 		state_index = stack.pop()
 		curr_player = player_turn_to_move[state_index]
 		curr_state = states_dict[state_index]
+		#check_state ##########################################################################
 		for free_coordinate in curr_state[1]:
 			new_state = copy.deepcopy(curr_state)
 			#move free_coordinate from [1] to [curr_player]
@@ -113,10 +102,12 @@ def build_tree(board, game_size):
 			
 			# tidy up/preparefor next iteration of the 2 enclosing loops
 			
+			stack.append(state_index_counter)
+			
 			state_index_counter += 1
 			
 
-			stack.append(state_index_counter)
+
 	return links_dict, states_dict, player_turn_to_move
 
 		
