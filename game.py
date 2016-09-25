@@ -5,7 +5,7 @@ import copy
 COMPUTER_VARIABLE = 0
 PLAYER_VARIABLE = 2
 AMBIGUOUS = 1
-
+INFINITE_VALUE = 100000000000000000000000000000000000000
 def drawgrid(board, game_size):
 	print("-" * ((4 * game_size) + 1))
 	for i in range(game_size):
@@ -18,7 +18,7 @@ def drawgrid(board, game_size):
 
 #for x in range(game_size):
 #        if board[x]
-print()
+#print()
 	
 
 def check_state(board, game_size):
@@ -26,6 +26,7 @@ def check_state(board, game_size):
 	computer_win = 0
 	diagonalup = 0
 	diagonaldown = 0
+	string_board = str(board)
 	for m in range(game_size):
 		horizontal = (sum(board[m]))
 		if horizontal == 0:
@@ -55,9 +56,10 @@ def check_state(board, game_size):
 		game_on = False
 	elif diagonaldown == game_size*2:
 		game_on = False
-	if 1 not in board:
+	if "1" not in string_board:
 		computer_win = 2
 		game_on = False
+		print(board)
 	return game_on, computer_win
 	
 def check_game_win_tree(new_state, game_size):
@@ -106,7 +108,7 @@ def check_game_win_tree(new_state, game_size):
 		computer_win = PLAYER_VARIABLE+1
 		
 	return computer_win
-	print (computer_win)
+
 
 def build_tree(board, game_size):
 	computer_value = COMPUTER_VARIABLE # TODO
@@ -164,22 +166,6 @@ def build_tree(board, game_size):
 	return links_dict, states_dict, player_turn_to_move
 
 		
-
-def get_computer_move(board, game_size):
-	#the players piece will always be two and the computer is 0
-	computer_value = 0
-	player_value = 2
-	# DFS - build the tree
-	links_dict, states_dict, player_turn_to_move = build_tree(board, game_size)
-	print(links_dict)
-	print(states_dict)
-	print(player_turn_to_move)
-	get_values(links_dict, states_dict, player_turn_to_move)
-	
-def get_values(links_dict, states_dict, player_turn_to_move):
-	current_node = 0
-	minimax_tree = {}
-	post_order(links_dict, states_dict, player_turn_to_move, minimax_tree, current_node, game_size)
 	
 def postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, current_node, game_size):
 	for child in links_dict[current_node]:
@@ -188,9 +174,9 @@ def postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, curren
 	if len(links_dict[current_node]) == 0:
 		game_winning_state = check_game_win_tree(states_dict[current_node],game_size)
 		minimax_tree[current_node] = 0
-		if game_winning_state = PLAYER_VARIABLE+1:
+		if game_winning_state == PLAYER_VARIABLE+1:
 			minimax_tree[current_node]+=1
-		elif game_winning_state = COMPUTER_VARIABLE+1:
+		elif game_winning_state == COMPUTER_VARIABLE+1:
 			minimax_tree[current_node]-=1
 	else:
 		if player_turn_to_move[current_node] == COMPUTER_VARIABLE:
@@ -207,11 +193,42 @@ def postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, curren
 			minimax_tree[current_node] = max(group_of_children)
 ####values represent the worth to the player where positive is player win and negative is computer win
 
+def get_computer_move(board, game_size):
+	#the players piece will always be two and the computer is 0
+	computer_value = 0
+	player_value = 2
+	# DFS - build the tree
+	links_dict, states_dict, player_turn_to_move = build_tree(board, game_size)
+	minimax_tree = get_values(links_dict, states_dict, player_turn_to_move, game_size)
+	new_children = links_dict[0]
+	smallest_child = INFINITE_VALUE
+	smallest_child_value = INFINITE_VALUE
+	for child in new_children:
+		if minimax_tree[child]<=smallest_child_value:
+			smallest_child = child
+			smallest_child_value = minimax_tree[smallest_child]
+	new_board_in_states = states_dict[smallest_child]
+	new_board = [[1,1,1],[1,1,1],[1,1,1]]
+	for player in range(3):
+		for x,y in new_board_in_states[player]:
+			new_board[y][x] = player
+	return new_board
+
+	
+	
+
+
+
+def get_values(links_dict, states_dict, player_turn_to_move, game_size):
+	current_node = 0
+	minimax_tree = {}
+	postorder(links_dict, states_dict, player_turn_to_move, minimax_tree, current_node, game_size)
+	return minimax_tree
 			
 def main():	
 	game_on = True
 	computer_win = 0
-	#0 for computer 1 for player
+	#0 for computer 1 for player 2 for actual computer ai
 	player_turn = int(input("Do you wanna go first? Type 1 for yes, 0 for no\n"))
 	game_size = int(input("What is the size of the grid that you want to play on?\n"))
 	board = []
@@ -223,29 +240,32 @@ def main():
 			a, b = input("Your turn! Please type your position in this format x,y\n").replace(" ", "").split(",")
 			x, y = int(a), int(b)
 			board[game_size-y-1][x] = 2
-			player_turn = 0
+			player_turn = 2
 		elif player_turn == 0:
 			correct_turn = 0
 			print("My turn!")
-			while correct_turn == 0:
+			while correct_turn == 0: #optimisation to randomise first move
 				y = random.randint(0,2)
 				x = random.randint(0,2)
 				if board[game_size-y-1][x] == 1:
 					board[game_size-y-1][x] = 0
 					correct_turn = 1
 			player_turn = 1
+		elif player_turn == 2: #minimax here
+			board = get_computer_move(board, game_size)
+			player_turn = 1
 		drawgrid(board, game_size)
 		game_on, computer_win = check_state(board, game_size)
-		
+
 	if computer_win == COMPUTER_VARIABLE+1: #1
 		print("I win!")
-		get_computer_move(board, game_on, game_size)
+		get_computer_move(board, game_size)
 	elif computer_win == AMBIGUOUS+1: #2
 		print("It's a draw!")
-		get_computer_move(board, game_on, game_size)
+		get_computer_move(board, game_size)
 	elif computer_win ==PLAYER_VARIABLE+1: #3
 		print("You win!")
-		get_computer_move(board, game_on, game_size)
+		get_computer_move(board, game_size)
 
-#main()			
+main()			
 
