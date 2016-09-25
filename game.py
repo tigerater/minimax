@@ -207,6 +207,8 @@ def get_computer_move(board, game_size):
 		if minimax_tree[child]<=smallest_child_value:
 			smallest_child = child
 			smallest_child_value = minimax_tree[smallest_child]
+	if smallest_child == INFINITE_VALUE:
+		quit()
 	new_board_in_states = states_dict[smallest_child]
 	new_board = [[1,1,1],[1,1,1],[1,1,1]]
 	for player in range(3):
@@ -259,13 +261,10 @@ def main():
 
 	if computer_win == COMPUTER_VARIABLE+1: #1
 		print("I win!")
-		get_computer_move(board, game_size)
 	elif computer_win == AMBIGUOUS+1: #2
 		print("It's a draw!")
-		get_computer_move(board, game_size)
 	elif computer_win ==PLAYER_VARIABLE+1: #3
 		print("You win!")
-		get_computer_move(board, game_size)
 
 main()			
 
